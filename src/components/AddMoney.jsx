@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Landmark, CreditCard, Wallet, ChevronRight, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,11 +10,24 @@ const AddMoney = ({ user, onUpdateBalance }) => {
   const [showGateway, setShowGateway] = useState(false);
   const navigate = useNavigate();
 
-  const handlePaymentSuccess = (addedAmount) => {
-    const newBalance = user.balance + addedAmount;
-    const updatedUser = { ...user, balance: newBalance };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    onUpdateBalance(newBalance);
+  const handlePaymentSuccess = async (addedAmount) => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+      const res = await axios.post(`${API_URL}/api/add-money`, {
+        email: user.email,
+        amount: parseFloat(addedAmount)
+      });
+      
+      if (res.data.success) {
+        const newBalance = res.data.newBalance;
+        const updatedUser = { ...user, balance: newBalance };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        onUpdateBalance(newBalance);
+      }
+    } catch (error) {
+      console.error("Add money failed", error);
+      alert("Something went wrong while adding money.");
+    }
   };
 
   if (showGateway) {

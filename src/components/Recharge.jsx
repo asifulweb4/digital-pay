@@ -16,7 +16,7 @@ import brilliantLogo from '../assets/brilliant.png';
 const Recharge = ({ user, onUpdateBalance }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showOperators, setShowOperators] = useState(false);
@@ -43,14 +43,15 @@ const Recharge = ({ user, onUpdateBalance }) => {
 
   useEffect(() => {
     if (location.state?.selectedAmount) {
+      const op = operators.find(o => o.name === location.state.selectedOperator);
       setFormData(prev => ({
         ...prev,
-        amount: location.state.selectedAmount,
+        amount: location.state.selectedAmount.toString(),
         operator: location.state.selectedOperator || prev.operator,
-        operatorCode: location.state.selectedCode || prev.operatorCode
+        operatorCode: location.state.selectedCode || op?.code || prev.operatorCode
       }));
     }
-  }, [location.state]);
+  }, []);
 
   const handleRecharge = async (e) => {
     e.preventDefault();
@@ -58,7 +59,7 @@ const Recharge = ({ user, onUpdateBalance }) => {
       setError('আপনার ব্যালেন্স পর্যাপ্ত নয়।');
       return;
     }
-    
+
     if (formData.number.length < 11) {
       setError('সঠিক মোবাইল নাম্বার দিন।');
       return;
@@ -69,15 +70,15 @@ const Recharge = ({ user, onUpdateBalance }) => {
 
     try {
       const result = await rechargeMobile(
-        formData.number, 
-        formData.amount, 
-        formData.operator, 
+        formData.number,
+        formData.amount,
+        formData.operator,
         formData.simType,
-        null, 
+        null,
         user.email,
         formData.password
       );
-      
+
       setIsProcessing(false);
       if (result.success) {
         const newBalance = user.balance - parseFloat(formData.amount);
@@ -97,21 +98,21 @@ const Recharge = ({ user, onUpdateBalance }) => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px', maxWidth: '800px', margin: '0 auto 35px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <motion.button 
+          <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => navigate(-1)} 
-            style={{ 
-              background: 'white', 
-              border: '2px solid var(--primary)', 
-              color: 'var(--primary)', 
-              width: '50px', 
-              height: '50px', 
-              borderRadius: '16px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              cursor: 'pointer', 
-              boxShadow: '0 4px 10px var(--primary-glow)' 
+            onClick={() => navigate(-1)}
+            style={{
+              background: 'white',
+              border: '2px solid var(--primary)',
+              color: 'var(--primary)',
+              width: '50px',
+              height: '50px',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 4px 10px var(--primary-glow)'
             }}
           >
             <ArrowLeft size={24} strokeWidth={3} />
@@ -207,22 +208,22 @@ const Recharge = ({ user, onUpdateBalance }) => {
                 <label>Recharge Amount</label>
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: '25px', top: '50%', transform: 'translateY(-50%)', fontSize: '24px', fontWeight: '900', color: 'var(--primary)' }}>৳</span>
-                  <input 
-                    type="number" required placeholder="0.00" 
-                    value={formData.amount} 
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })} 
-                    style={{ width: '100%', padding: '22px 22px 22px 55px', borderRadius: '25px', background: 'white', border: '2px solid #f1f5f9', color: 'var(--text-main)', fontSize: '32px', fontWeight: '900', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }} 
+                  <input
+                    type="number" required placeholder="0.00"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    style={{ width: '100%', padding: '22px 22px 22px 55px', borderRadius: '25px', background: 'white', border: '2px solid #f1f5f9', color: 'var(--text-main)', fontSize: '32px', fontWeight: '900', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}
                   />
                 </div>
               </div>
 
               <div style={{ marginTop: '30px' }}>
                 <label>Account PIN</label>
-                <input 
-                  type="password" required placeholder="••••" 
-                  value={formData.password} 
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-                  style={{ width: '100%', padding: '22px', borderRadius: '25px', background: 'white', border: '2px solid #f1f5f9', color: 'var(--text-main)', fontSize: '32px', letterSpacing: '12px', textAlign: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }} 
+                <input
+                  type="password" required placeholder="••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  style={{ width: '100%', padding: '22px', borderRadius: '25px', background: 'white', border: '2px solid #f1f5f9', color: 'var(--text-main)', fontSize: '32px', letterSpacing: '12px', textAlign: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}
                 />
               </div>
             </div>
@@ -251,7 +252,7 @@ const Recharge = ({ user, onUpdateBalance }) => {
           </div>
           <h2 style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)', marginBottom: '15px', letterSpacing: '-0.5px' }}>Success!</h2>
           <p style={{ color: 'var(--text-dim)', fontSize: '18px', fontWeight: '600' }}>৳ {formData.amount} has been recharged to {formData.number}</p>
-          
+
           <div style={{ margin: '40px 0', padding: '30px', background: '#f8fafc', borderRadius: '30px', border: '2px dashed #e2e8f0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
               <span style={{ color: 'var(--text-dim)', fontWeight: '700' }}>Operator</span>

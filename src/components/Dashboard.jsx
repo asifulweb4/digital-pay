@@ -1,11 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, Send, Landmark, Receipt, History, User, QrCode, Bell, ChevronRight, Zap, Gift, ShieldCheck, Eye, EyeOff, Search, MoreHorizontal, UserPlus, LogIn, ArrowRight, TrendingUp, Wallet, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = ({ user }) => {
   const [showBalance, setShowBalance] = useState(false);
+  const [stats, setStats] = useState({ savings: 0, expenses: 0 });
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+
+  useEffect(() => {
+    if (user?.email) {
+      const fetchStats = async () => {
+        try {
+          const res = await axios.get(`${API_URL}/api/stats/${user.email}`);
+          if (res.data.success) {
+            setStats({ savings: res.data.savings, expenses: res.data.expenses });
+          }
+        } catch (error) {
+          console.error("Failed to fetch stats", error);
+        }
+      };
+      fetchStats();
+    }
+  }, [user]);
 
   const services = [
     { icon: <Send size={26} />, label: 'Send Money', path: '/send', color: '#6366f1' },
@@ -153,7 +172,7 @@ const Dashboard = ({ user }) => {
                  </div>
                  <div>
                    <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-dim)' }}>Savings</p>
-                   <h4 style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)' }}>+৳4,250</h4>
+                   <h4 style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)' }}>+৳{Number(stats.savings).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
                  </div>
                </motion.div>
                <motion.div 
@@ -165,7 +184,7 @@ const Dashboard = ({ user }) => {
                  </div>
                  <div>
                    <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-dim)' }}>Expenses</p>
-                   <h4 style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)' }}>-৳1,120</h4>
+                   <h4 style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)' }}>-৳{Number(stats.expenses).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
                  </div>
                </motion.div>
             </div>

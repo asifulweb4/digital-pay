@@ -26,17 +26,17 @@ const PaymentGateway = ({ amount, onPaymentSuccess }) => {
   };
 
   const methods = [
-    { id: 'bkash', label: 'bKash', color: '#e2136e', type: 'MFS' },
-    { id: 'nagad', label: 'Nagad', color: '#f7941d', type: 'MFS' },
-    { id: 'rocket', label: 'Rocket', color: '#8c3494', type: 'MFS' },
-    { id: 'upay', label: 'Upay', color: '#00adef', type: 'MFS' },
-    { id: 'card', label: 'Card / Net Banking', color: '#4f46e5', type: 'Gateway' },
+    { id: 'bkash', label: 'bKash', color: '#e2136e', type: 'MFS', number: '01333858547' },
+    { id: 'nagad', label: 'Nagad', color: '#f7941d', type: 'MFS', number: '01XXXXXXXXX' },
+    { id: 'rocket', label: 'Rocket', color: '#8c3494', type: 'MFS', number: '01XXXXXXXXX' },
+    { id: 'upay', label: 'Upay', color: '#00adef', type: 'MFS', number: '01XXXXXXXXX' },
+    { id: 'card', label: 'Card / Net Banking', color: '#4f46e5', type: 'Gateway', number: null },
   ];
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#f8fafc', color: '#1e293b', zIndex: 10000, overflowY: 'auto' }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        
+
         {/* Gateway Header */}
         <div style={{ background: 'white', padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -56,14 +56,14 @@ const PaymentGateway = ({ amount, onPaymentSuccess }) => {
             {step === 1 && (
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} key="step1">
                 <h4 style={{ marginBottom: '20px', color: '#475569', fontSize: '16px', fontWeight: '700' }}>Select Payment Method</h4>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {methods.map((m) => (
-                    <motion.div 
-                      key={m.id} 
+                    <motion.div
+                      key={m.id}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => { setMethod(m); setStep(2); }}
-                      style={{ 
+                      style={{
                         background: 'white', padding: '18px', borderRadius: '20px', border: '1px solid #e2e8f0',
                         display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
@@ -91,30 +91,37 @@ const PaymentGateway = ({ amount, onPaymentSuccess }) => {
                     <h3 style={{ fontSize: '18px', fontWeight: '800' }}>{method.label} Payment</h3>
                   </div>
 
-                  <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '18px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
-                    <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '10px' }}>Please Send Money to this number:</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b' }}>01804624046</h2>
-                      <button 
-                        onClick={() => handleCopy('01804624046')}
-                        style={{ background: 'white', border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
-                      >
-                        {copied ? <Check size={14} color="var(--success)" /> : <Copy size={14} />}
-                        {copied ? 'Copied' : 'Copy'}
-                      </button>
+                  {method.number ? (
+                    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '18px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
+                      <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '10px' }}>Please Send Money to this number:</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b' }}>{method.number}</h2>
+                        <button
+                          onClick={() => handleCopy(method.number)}
+                          type="button"
+                          style={{ background: 'white', border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+                        >
+                          {copied ? <Check size={14} color="var(--success)" /> : <Copy size={14} />}
+                          {copied ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '18px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
+                      <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', fontWeight: '600' }}>You will be redirected to the secure gateway for Card payment.</p>
+                    </div>
+                  )}
 
                   <form onSubmit={handlePaymentSubmit}>
                     <div className="input-group">
                       <label style={{ fontWeight: '700' }}>Transaction ID (TrxID)</label>
-                      <input 
-                        type="text" required placeholder="8N7X2M9K" 
+                      <input
+                        type="text" required placeholder="8N7X2M9K"
                         value={trxId} onChange={(e) => setTrxId(e.target.value.toUpperCase())}
                         style={{ height: '60px', borderRadius: '16px', border: '2px solid #e2e8f0', background: '#f8fafc', padding: '0 20px', fontSize: '18px', fontWeight: '700', letterSpacing: '1px' }}
                       />
                     </div>
-                    
+
                     <div style={{ padding: '15px', background: '#fff9eb', border: '1px solid #ffeeba', borderRadius: '12px', marginBottom: '25px' }}>
                       <p style={{ fontSize: '12px', color: '#856404', lineHeight: '1.6' }}>
                         <strong>Instructions:</strong> Go to your {method.label} App, select Send Money, enter the number above and the amount <strong>৳{amount}</strong>. After successful payment, copy the Transaction ID and paste it here.
@@ -131,7 +138,7 @@ const PaymentGateway = ({ amount, onPaymentSuccess }) => {
 
             {step === 3 && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 40px' }}>
-                <motion.div 
+                <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                   style={{ width: '60px', height: '60px', border: '5px solid #f1f5f9', borderTopColor: 'var(--primary)', borderRadius: '50%' }}
@@ -148,7 +155,7 @@ const PaymentGateway = ({ amount, onPaymentSuccess }) => {
                 </div>
                 <h2 style={{ marginTop: '25px', fontWeight: '800', fontSize: '24px' }}>Add Money Successful!</h2>
                 <p style={{ color: '#64748b', marginTop: '10px', textAlign: 'center' }}>৳ {amount} has been successfully added to your wallet balance.</p>
-                
+
                 <div style={{ width: '100%', background: 'white', padding: '20px', borderRadius: '20px', marginTop: '30px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <span style={{ color: '#64748b', fontSize: '13px' }}>Transaction ID</span>
@@ -160,7 +167,7 @@ const PaymentGateway = ({ amount, onPaymentSuccess }) => {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => navigate('/')}
                   style={{ width: '100%', marginTop: '40px', background: '#1e293b', color: 'white', border: 'none', padding: '18px', borderRadius: '18px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
                 >

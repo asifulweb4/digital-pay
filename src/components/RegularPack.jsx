@@ -37,16 +37,24 @@ const RegularPack = ({ user }) => {
 
   const handlePackClick = (pack) => {
     if (parseFloat(pack.price) > user?.balance) {
-      alert("দুঃখিত, আপনার ব্যালেন্স পর্যাপ্ত নয়।");
+      // ✅ Alert এর বদলে AddMoney page এ নিয়ে যাও
+      navigate('/add-money', {
+        state: {
+          message: `৳${pack.price} প্যাক কিনতে আপনার balance পর্যাপ্ত নয়। টাকা যোগ করুন।`,
+          requiredAmount: pack.price
+        }
+      });
       return;
     }
 
-    navigate('/recharge', { 
-      state: { 
-        selectedAmount: pack.price, 
+    // ✅ Balance থাকলে recharge page এ যাও
+    navigate('/recharge', {
+      state: {
+        selectedAmount: pack.price,
         selectedOperator: pack.operator,
-        selectedCode: pack.operatorCode
-      } 
+        selectedCode: pack.operatorCode,
+        isPackage: true
+      }
     });
   };
 
@@ -87,8 +95,8 @@ const RegularPack = ({ user }) => {
 
   const allPacks = generatePacks();
 
-  const filteredPacks = allPacks.filter(pack => 
-    pack.operator === selectedOperator && 
+  const filteredPacks = allPacks.filter(pack =>
+    pack.operator === selectedOperator &&
     (selectedTab === 'সব' || pack.category === selectedTab) &&
     (pack.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -98,21 +106,21 @@ const RegularPack = ({ user }) => {
       {/* Header Section */}
       <div style={{ position: 'sticky', top: 0, zHeader: 1000, background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(30px)', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ display: 'flex', alignItems: 'center', padding: '25px 20px', gap: '20px' }}>
-          <motion.button 
+          <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => navigate(-1)} 
-            style={{ 
-              background: 'white', 
-              border: '2px solid var(--primary)', 
-              color: 'var(--primary)', 
-              width: '50px', 
-              height: '50px', 
-              borderRadius: '16px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              cursor: 'pointer', 
-              boxShadow: '0 4px 10px var(--primary-glow)' 
+            onClick={() => navigate(-1)}
+            style={{
+              background: 'white',
+              border: '2px solid var(--primary)',
+              color: 'var(--primary)',
+              width: '50px',
+              height: '50px',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 4px 10px var(--primary-glow)'
             }}
           >
             <ArrowLeft size={24} strokeWidth={3} />
@@ -141,15 +149,15 @@ const RegularPack = ({ user }) => {
                 boxShadow: selectedOperator === op.name ? '0 10px 20px rgba(0,0,0,0.08)' : 'none'
               }}
             >
-              <img 
-                src={op.icon} 
-                alt={op.name} 
-                style={{ 
-                  width: '50px', 
-                  height: '50px', 
-                  objectFit: 'contain', 
-                  filter: selectedOperator === op.name ? 'none' : 'grayscale(0.3) opacity(0.8)' 
-                }} 
+              <img
+                src={op.icon}
+                alt={op.name}
+                style={{
+                  width: '50px',
+                  height: '50px',
+                  objectFit: 'contain',
+                  filter: selectedOperator === op.name ? 'none' : 'grayscale(0.3) opacity(0.8)'
+                }}
               />
             </motion.div>
           ))}
@@ -232,20 +240,20 @@ const RegularPack = ({ user }) => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ 
-                      width: '60px', 
-                      height: '60px', 
-                      borderRadius: '20px', 
+                    <div style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '20px',
                       background: '#f8fafc',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       border: '1px solid #f1f5f9'
                     }}>
-                      <img 
-                        src={operators.find(o => o.name === pack.operator)?.icon} 
-                        alt="op" 
-                        style={{ width: '42px', height: '42px', objectFit: 'contain' }} 
+                      <img
+                        src={operators.find(o => o.name === pack.operator)?.icon}
+                        alt="op"
+                        style={{ width: '42px', height: '42px', objectFit: 'contain' }}
                       />
                     </div>
                     <div>

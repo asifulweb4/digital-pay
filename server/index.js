@@ -3,6 +3,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import cors from 'cors';
 import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -32,8 +33,17 @@ const initDB = async () => {
         password TEXT NOT NULL,
         balance DECIMAL(12,2) DEFAULT 0.00
       );
+      
+      CREATE TABLE IF NOT EXISTS transactions (
+        id SERIAL PRIMARY KEY,
+        user_email TEXT NOT NULL,
+        type TEXT NOT NULL,
+        amount DECIMAL(12,2) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
-    console.log("Database initialized successfully");
+    console.log("Database initialized successfully with transactions table");
   } catch (err) {
     console.error("Database initialization error:", err.message);
   }
@@ -46,10 +56,10 @@ const apiRouter = express.Router();
 
 // Test Route
 apiRouter.get('/test', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: "API is working perfectly!", 
-    env: process.env.DATABASE_URL ? "Database URL is present" : "Database URL is MISSING!" 
+  res.json({
+    success: true,
+    message: "API is working perfectly!",
+    env: process.env.DATABASE_URL ? "Database URL is present" : "Database URL is MISSING!"
   });
 });
 
@@ -62,9 +72,10 @@ apiRouter.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: "এই ইমেল বা ফোন আগে থেকেই ব্যবহৃত হয়েছে!" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     const result = await pool.query(
       'INSERT INTO users (name, email, phone, password, balance) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone, balance',
-      [name, email, phone, password, 0.00]
+      [name, email, phone, hashedPassword, 0.00]
     );
     res.json({ success: true, user: result.rows[0] });
   } catch (err) {
@@ -77,12 +88,19 @@ apiRouter.post('/login', async (req, res) => {
   const { identity, password } = req.body;
   try {
     const result = await pool.query(
-      'SELECT id, name, email, phone, balance FROM users WHERE (email = $1 OR phone = $1) AND password = $2',
-      [identity, password]
+      'SELECT * FROM users WHERE email = $1 OR phone = $1',
+      [identity]
     );
 
     if (result.rows.length > 0) {
-      res.json({ success: true, user: result.rows[0] });
+      const user = result.rows[0];
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (isMatch) {
+        delete user.password;
+        res.json({ success: true, user });
+      } else {
+        res.status(401).json({ success: false, message: "ভুল ইমেল/ফোন বা পাসওয়ার্ড!" });
+      }
     } else {
       res.status(401).json({ success: false, message: "ভুল ইমেল/ফোন বা পাসওয়ার্ড!" });
     }
@@ -116,10 +134,21 @@ apiRouter.post('/send-money', async (req, res) => {
       throw new Error('পর্যাপ্ত ব্যালেন্স নেই!');
     }
     await pool.query('UPDATE users SET balance = balance - $1 WHERE email = $2', [amount, sender_email]);
-    const receiver = await pool.query('UPDATE users SET balance = balance + $1 WHERE phone = $2 RETURNING id', [amount, receiver_phone]);
+    const receiver = await pool.query('UPDATE users SET balance = balance + $1 WHERE phone = $2 RETURNING id, email', [amount, receiver_phone]);
     if (receiver.rows.length === 0) {
       throw new Error('প্রাপকের ফোন নাম্বার সঠিক নয়!');
     }
+
+    // Record transactions
+    await pool.query(
+      "INSERT INTO transactions (user_email, type, amount, description) VALUES ($1, 'send_money', $2, $3)",
+      [sender_email, amount, `Sent money to ${receiver_phone}`]
+    );
+    await pool.query(
+      "INSERT INTO transactions (user_email, type, amount, description) VALUES ($1, 'receive', $2, $3)",
+      [receiver.rows[0].email, amount, `Received money from ${sender_email}`]
+    );
+
     await pool.query('COMMIT');
     res.json({ success: true, message: "টাকা পাঠানো সফল হয়েছে!" });
   } catch (err) {
@@ -128,19 +157,53 @@ apiRouter.post('/send-money', async (req, res) => {
   }
 });
 
+// --- ৪.৫. অ্যাড মানি এপিআই ---
+apiRouter.post('/add-money', async (req, res) => {
+  const { email, amount } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE users SET balance = balance + $1 WHERE email = $2 RETURNING balance',
+      [amount, email]
+    );
+    if (result.rows.length > 0) {
+      await pool.query(
+        "INSERT INTO transactions (user_email, type, amount, description) VALUES ($1, 'add_money', $2, 'Added money via Payment Gateway')",
+        [email, amount]
+      );
+      res.json({ success: true, newBalance: result.rows[0].balance });
+    } else {
+      res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- ৫. মোবাইল রিচার্জ এপিআই ---
 apiRouter.post('/recharge', async (req, res) => {
   const { email, amount, password } = req.body;
   try {
-    const user = await pool.query('SELECT password FROM users WHERE email = $1', [email]);
-    if (user.rows.length === 0 || user.rows[0].password !== password) {
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
+    }
+
+    const user = userResult.rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ success: false, message: "ভুল পাসওয়ার্ড!" });
     }
+
     const result = await pool.query(
       'UPDATE users SET balance = balance - $1 WHERE email = $2 AND balance >= $1 RETURNING balance',
       [amount, email]
     );
     if (result.rows.length > 0) {
+      // Record transaction
+      await pool.query(
+        "INSERT INTO transactions (user_email, type, amount, description) VALUES ($1, 'recharge', $2, $3)",
+        [email, amount, `Mobile Recharge`]
+      );
       res.json({ success: true, newBalance: result.rows[0].balance });
     } else {
       res.status(400).json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
@@ -150,13 +213,37 @@ apiRouter.post('/recharge', async (req, res) => {
   }
 });
 
+// --- ৬. ড্যাশবোর্ড স্ট্যাটস এপিআই ---
+apiRouter.get('/stats/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    // Calculate total savings (Add Money, Receive)
+    const savingsResult = await pool.query(
+      "SELECT SUM(amount) as total FROM transactions WHERE user_email = $1 AND type IN ('add_money', 'receive')",
+      [email]
+    );
+    
+    // Calculate total expenses (Send Money, Recharge, Bill Pay)
+    const expensesResult = await pool.query(
+      "SELECT SUM(amount) as total FROM transactions WHERE user_email = $1 AND type IN ('send_money', 'recharge', 'bill_pay')",
+      [email]
+    );
+
+    res.json({
+      success: true,
+      savings: savingsResult.rows[0].total || 0,
+      expenses: expensesResult.rows[0].total || 0
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.use('/api', apiRouter);
 app.use('/', apiRouter);
 
 export default app;
 
-// Local development server
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-}
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
