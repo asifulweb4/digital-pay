@@ -10,7 +10,7 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000');
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
 
   const services = [
     { icon: <Send size={24} />, label: 'Send Money', color: '#6366f1', delay: 0.1 },
@@ -44,23 +44,23 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      style={{ 
-        minHeight: '100vh', 
-        background: '#f8fafc', 
-        position: 'relative', 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      style={{
+        minHeight: '100vh',
+        background: '#f8fafc',
+        position: 'relative',
         overflowX: 'hidden',
         display: 'flex',
         flexDirection: 'column'
       }}
     >
-      
+
       {/* Dynamic Animated Background */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100vh', zIndex: 0, overflow: 'hidden' }}>
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             scale: [1, 1.2, 1],
             rotate: [0, 90, 0],
             x: [0, 50, 0],
@@ -69,8 +69,8 @@ const Login = ({ onLogin }) => {
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           style={{ position: 'absolute', top: '-10%', right: '-10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%)', borderRadius: '50%' }}
         />
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             scale: [1, 1.3, 1],
             rotate: [0, -120, 0],
             x: [0, -40, 0],
@@ -83,20 +83,20 @@ const Login = ({ onLogin }) => {
 
       {/* Main Content Container */}
       <div style={{ position: 'relative', zIndex: 1, width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        
+
         {/* Animated Header Section */}
-        <motion.div 
+        <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          style={{ 
-            padding: '60px 20px 80px', 
-            background: 'linear-gradient(135deg, var(--primary) 0%, #6366f1 100%)', 
+          style={{
+            padding: '60px 20px 80px',
+            background: 'linear-gradient(135deg, var(--primary) 0%, #6366f1 100%)',
             borderRadius: '0 0 60px 60px',
             textAlign: 'center',
             boxShadow: '0 20px 40px rgba(79, 70, 229, 0.15)'
           }}
         >
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
             style={{ width: '90px', height: '90px', background: 'white', borderRadius: '28px', margin: '0 auto 25px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 15px 35px rgba(0,0,0,0.1)' }}
           >
@@ -108,16 +108,16 @@ const Login = ({ onLogin }) => {
 
         {/* Login Form Section */}
         <div style={{ padding: '0 20px', marginTop: '-50px', width: '100%', maxWidth: '800px', margin: '-50px auto 40px' }}>
-          <motion.div 
+          <motion.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            style={{ 
-              background: 'white', 
-              padding: '40px', 
-              borderRadius: '40px', 
-              boxShadow: '0 30px 60px rgba(0,0,0,0.08)', 
-              border: '1px solid rgba(255,255,255,1)' 
+            style={{
+              background: 'white',
+              padding: '40px',
+              borderRadius: '40px',
+              boxShadow: '0 30px 60px rgba(0,0,0,0.08)',
+              border: '1px solid rgba(255,255,255,1)'
             }}
           >
             <div style={{ marginBottom: '35px' }}>
@@ -136,9 +136,9 @@ const Login = ({ onLogin }) => {
                 <label style={{ fontSize: '15px' }}>Identity (Email or Phone)</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={22} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                  <input 
+                  <input
                     type="text" required placeholder="Enter email or mobile"
-                    value={formData.identity} onChange={(e) => setFormData({...formData, identity: e.target.value})}
+                    value={formData.identity} onChange={(e) => setFormData({ ...formData, identity: e.target.value })}
                     style={{ width: '100%', padding: '22px 22px 22px 60px', borderRadius: '22px', border: '2px solid #f1f5f9', background: '#f8fafc', fontSize: '17px', fontWeight: '700', transition: '0.3s' }}
                   />
                 </div>
@@ -148,9 +148,9 @@ const Login = ({ onLogin }) => {
                 <label style={{ fontSize: '15px' }}>Account Password</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={22} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-                  <input 
+                  <input
                     type="password" required placeholder="••••••••"
-                    value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     style={{ width: '100%', padding: '22px 22px 22px 60px', borderRadius: '22px', border: '2px solid #f1f5f9', background: '#f8fafc', fontSize: '17px', fontWeight: '700', transition: '0.3s' }}
                   />
                 </div>
@@ -162,9 +162,9 @@ const Login = ({ onLogin }) => {
             </form>
 
             <div style={{ textAlign: 'center', marginTop: '35px' }}>
-               <p style={{ fontSize: '15px', color: 'var(--text-dim)', fontWeight: '700' }}>
-                 New here? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '900', textDecoration: 'none', borderBottom: '2px solid transparent' }}>Create Premium Account</Link>
-               </p>
+              <p style={{ fontSize: '15px', color: 'var(--text-dim)', fontWeight: '700' }}>
+                New here? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '900', textDecoration: 'none', borderBottom: '2px solid transparent' }}>Create Premium Account</Link>
+              </p>
             </div>
           </motion.div>
         </div>
@@ -174,8 +174,8 @@ const Login = ({ onLogin }) => {
           <h4 style={{ fontSize: '14px', fontWeight: '900', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center', marginBottom: '30px' }}>Premium Features</h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
             {services.map((s, i) => (
-              <motion.div 
-                key={i} 
+              <motion.div
+                key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: s.delay }}
@@ -183,7 +183,7 @@ const Login = ({ onLogin }) => {
                 style={{ textAlign: 'center' }}
               >
                 <div style={{ width: '100%', aspectRatio: '1/1', background: 'white', borderRadius: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, boxShadow: '0 10px 25px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,1)' }}>
-                   {s.icon}
+                  {s.icon}
                 </div>
                 <p style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-main)', marginTop: '12px' }}>{s.label}</p>
               </motion.div>
@@ -192,7 +192,7 @@ const Login = ({ onLogin }) => {
         </div>
 
         {/* Bottom Trust Badge */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           style={{ textAlign: 'center', paddingBottom: '40px', opacity: 0.6 }}
