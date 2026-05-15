@@ -1,14 +1,15 @@
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import pg from 'pg';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const { Pool } = pg;
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-module.exports = async (req, res) => {
-    // CORS headers
+export default async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -17,33 +18,29 @@ module.exports = async (req, res) => {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
     try {
-        const { email, password } = req.body;
+        const { identity, password } = req.body;
 
-        // ১. Email আছে কিনা চেক করো
         const result = await pool.query(
-            'SELECT * FROM users WHERE email = $1', [email]
+            'SELECT * FROM users WHERE email = $1 OR phone = $1', [identity]
         );
 
         if (result.rows.length === 0) {
             return res.status(401).json({
                 success: false,
-                message: 'Email বা Password ভুল'
+                message: 'Email/Phone বা Password ভুল'
             });
         }
 
         const user = result.rows[0];
-
-        // ২. Password চেক করো
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
             return res.status(401).json({
                 success: false,
-                message: 'Email বা Password ভুল'
+                message: 'Email/Phone বা Password ভুল'
             });
         }
 
-        // ৩. JWT Token বানাও
         const token = jwt.sign(
             { id: user.id, email: user.email },
             process.env.JWT_SECRET,
@@ -65,6 +62,6 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ success: false, message: 'Server error' });
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
