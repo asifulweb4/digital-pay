@@ -15,6 +15,11 @@ import SendMoney from './components/SendMoney';
 import Cards from './components/Cards';
 import History from './components/History';
 import More from './components/More';
+import Withdraw from './components/Withdraw';
+import Refer from './components/Refer';
+import Vip from './components/Vip';
+import Offers from './components/Offers';
+import Help from './components/Help';
 import './index.css';
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000');
@@ -29,8 +34,8 @@ function App() {
       if (savedUser) {
         const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);
-        
-        // অ্যাপ খুললে সাইলেন্টলি ডাটাবেস থেকে রিয়েল ব্যালেন্স আনা
+
+        // অ্যাপ খুললে সাইলেন্টলি ডাটাবেস থেকে রিয়েল ব্যালেন্স আনা
         try {
           const response = await axios.get(`${API_URL}/api/user/${parsedUser.email}`);
           if (response.data) {
@@ -47,7 +52,12 @@ function App() {
   }, []);
 
   const handleUpdateBalance = (newBalance) => {
-    setUser(prev => ({ ...prev, balance: newBalance }));
+    setUser(prev => {
+      if (!prev) return null;
+      const updatedUser = { ...prev, balance: newBalance };
+      localStorage.setItem('user', JSON.stringify(updatedUser)); // লোকাল স্টোরেজেও ব্যালেন্স সিঙ্ক রাখা হলো
+      return updatedUser;
+    });
   };
 
   if (loading) return <SplashScreen />;
@@ -67,6 +77,14 @@ function App() {
           <Route path="/send" element={user ? <SendMoney user={user} onUpdateBalance={handleUpdateBalance} /> : <Navigate to="/login" />} />
           <Route path="/cards" element={user ? <Cards user={user} /> : <Navigate to="/login" />} />
           <Route path="/history" element={user ? <History user={user} /> : <Navigate to="/login" />} />
+          <Route path="/refer" element={user ? <Refer /> : <Navigate to="/login" />} />
+          <Route path="/vip" element={user ? <Vip /> : <Navigate to="/login" />} />
+          <Route path="/offers" element={user ? <Offers /> : <Navigate to="/login" />} />
+          <Route path="/help" element={user ? <Help /> : <Navigate to="/login" />} />
+
+          {/* উইথড্র রাউট ফিক্স করা হলো: ফাংশনের নাম সঠিক করা হয়েছে এবং লগইন গার্ড দেওয়া হয়েছে */}
+          <Route path="/withdraw" element={user ? <Withdraw user={user} onBalanceUpdate={handleUpdateBalance} /> : <Navigate to="/login" />} />
+
           <Route path="/more" element={user ? <More user={user} /> : <Navigate to="/login" />} />
         </Routes>
         {user && <Navbar />}
@@ -76,17 +94,17 @@ function App() {
 }
 
 const SplashScreen = () => (
-  <div className="splash-screen" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-    <motion.div 
+  <div className="splash-screen" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyYontent: 'center', alignItems: 'center', justifyContent: 'center' }}>
+    <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
     >
-      <div style={{ 
-        width: '120px', height: '120px', 
-        background: 'linear-gradient(135deg, #4f46e5 0%, #ec4899 100%)', 
-        borderRadius: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+      <div style={{
+        width: '120px', height: '120px',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #ec4899 100%)',
+        borderRadius: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 20px 40px rgba(79, 70, 229, 0.3)',
         marginBottom: '30px',
         position: 'relative',
@@ -97,7 +115,7 @@ const SplashScreen = () => (
       </div>
       <h2 className="logo-text" style={{ fontSize: '32px', fontWeight: '900', letterSpacing: '4px' }}>DIGITAL PAY</h2>
       <div style={{ marginTop: '40px', width: '40px', height: '4px', background: 'var(--primary-glow)', borderRadius: '2px', position: 'relative', overflow: 'hidden' }}>
-        <motion.div 
+        <motion.div
           animate={{ x: [-40, 40] }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
           style={{ position: 'absolute', width: '20px', height: '100%', background: 'var(--primary)', borderRadius: '2px' }}

@@ -1,112 +1,179 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Smartphone, Send, Landmark, Receipt, Search, Filter, ChevronRight, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { ArrowLeft, Smartphone, Send, Landmark, Receipt, Search, Filter, ArrowDownLeft, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const History = ({ user }) => {
   const navigate = useNavigate();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all'); // all, income, expense
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  const transactions = [
-    { id: 1, type: 'Recharge', title: 'Grameenphone Recharge', amount: '-৳500.00', date: 'Today, 12:30 PM', icon: <Smartphone />, color: '#f43f5e', success: true },
-    { id: 2, type: 'Received', title: 'Money from 01784XXXXXX', amount: '+৳1,200.00', date: 'Yesterday, 08:15 PM', icon: <ArrowDownLeft />, color: '#10b981', success: true },
-    { id: 3, type: 'Send', title: 'Sent to 01944XXXXXX', amount: '-৳2,000.00', date: '14 May, 03:45 PM', icon: <Send />, color: '#6366f1', success: true },
-    { id: 4, type: 'Add Money', title: 'Added from bKash', amount: '+৳5,000.00', date: '12 May, 10:20 AM', icon: <Landmark />, color: '#06b6d4', success: true },
-    { id: 5, type: 'Bill Pay', title: 'DESCO Bill Payment', amount: '-৳1,450.00', date: '10 May, 11:00 AM', icon: <Receipt />, color: '#f59e0b', success: false },
-    { id: 6, type: 'Recharge', title: 'Robi Recharge', amount: '-৳99.00', date: '08 May, 09:12 AM', icon: <Smartphone />, color: '#f43f5e', success: true },
-  ];
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+
+  // ডাটাবেজ থেকে ট্রানজেকশন ডাটা ফেস করা
+  useEffect(() => {
+    if (user?.email) {
+      fetchTransactionHistory();
+    }
+  }, [user]);
+
+  const fetchTransactionHistory = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/transactions/${user.email}`);
+      if (res.data.success) {
+        setTransactions(res.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to load transactions", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // টাইপ অনুযায়ী আইকন সেট করার হেল্পার ফাংশন
+  const getIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'recharge': return <Smartphone />;
+      case 'send': return <Send />;
+      case 'receive': return <ArrowDownLeft />;
+      case 'add-money': return <Landmark />;
+      case 'bill-pay': return <Receipt />;
+      default: return <RefreshCw />;
+    }
+  };
+
+  // সার্চ এবং ফিল্টার লজিক প্রসেস করা
+  const filteredTransactions = transactions.filter((txn) => {
+    const matchesSearch = txn.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      txn.type?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (filterType === 'income') {
+      return matchesSearch && txn.amount.startsWith('+');
+    }
+    if (filterType === 'expense') {
+      return matchesSearch && txn.amount.startsWith('-');
+    }
+    return matchesSearch;
+  });
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '20px', paddingBottom: '120px', background: '#f8fafc', minHeight: '100vh' }}>
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '35px', maxWidth: '800px', margin: '0 auto 35px' }}>
-        <motion.button 
+        <motion.button
           whileTap={{ scale: 0.9 }}
-          onClick={() => navigate('/')} 
-          style={{ 
-            background: 'white', 
-            border: '2px solid var(--primary)', 
-            color: 'var(--primary)', 
-            width: '50px', 
-            height: '50px', 
-            borderRadius: '16px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            cursor: 'pointer', 
-            boxShadow: '0 4px 10px var(--primary-glow)' 
+          onClick={() => navigate('/')}
+          style={{
+            background: 'white',
+            border: '1px solid #e2e8f0',
+            color: '#1e293b',
+            width: '50px',
+            height: '50px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
           }}
         >
-          <ArrowLeft size={24} strokeWidth={3} />
+          <ArrowLeft size={24} />
         </motion.button>
-        <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', letterSpacing: '-0.5px' }}>Transactions</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.5px' }}>Transactions</h2>
       </div>
 
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        {/* Search & Filter */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '30px' }}>
+
+        {/* Search & Filter Controls */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '30px', position: 'relative' }}>
           <div style={{ flex: 1, position: 'relative' }}>
-            <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
-            <input 
-              type="text" 
-              placeholder="Search transactions..." 
-              style={{ width: '100%', padding: '15px 15px 15px 48px', borderRadius: '18px', border: '1px solid #f1f5f9', background: 'white', fontWeight: '600', fontSize: '14px', outline: 'none' }}
+            <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: '100%', padding: '15px 15px 15px 48px', borderRadius: '18px', border: '1px solid #e2e8f0', background: 'white', fontWeight: '600', fontSize: '14px', outline: 'none', color: '#1e293b' }}
             />
           </div>
-          <motion.button 
+          <motion.button
             whileTap={{ scale: 0.9 }}
-            style={{ width: '52px', height: '52px', borderRadius: '18px', background: 'white', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)' }}
+            onClick={() => setShowFilterMenu(!showFilterMenu)}
+            style={{ width: '52px', height: '52px', borderRadius: '18px', background: filterType !== 'all' ? '#eff6ff' : 'white', border: `1px solid ${filterType !== 'all' ? '#3b82f6' : '#e2e8f0'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: filterType !== 'all' ? '#3b82f6' : '#1e293b', cursor: 'pointer' }}
           >
             <Filter size={20} />
           </motion.button>
+
+          {/* Dynamic Filter Mini Dropdown */}
+          {showFilterMenu && (
+            <div style={{ position: 'absolute', right: 0, top: '60px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <button onClick={() => { setFilterType('all'); setShowFilterMenu(false); }} style={{ padding: '10px 20px', border: 'none', background: filterType === 'all' ? '#f1f5f9' : 'transparent', borderRadius: '10px', fontWeight: '700', textAlign: 'left', cursor: 'pointer', color: '#1e293b' }}>All Transactions</button>
+              <button onClick={() => { setFilterType('income'); setShowFilterMenu(false); }} style={{ padding: '10px 20px', border: 'none', background: filterType === 'income' ? '#f1f5f9' : 'transparent', borderRadius: '10px', fontWeight: '700', textAlign: 'left', cursor: 'pointer', color: '#10b981' }}>Incomes (+)</button>
+              <button onClick={() => { setFilterType('expense'); setShowFilterMenu(false); }} style={{ padding: '10px 20px', border: 'none', background: filterType === 'expense' ? '#f1f5f9' : 'transparent', borderRadius: '10px', fontWeight: '700', textAlign: 'left', cursor: 'pointer', color: '#ef4444' }}>Expenses (-)</button>
+            </div>
+          )}
         </div>
 
-        {/* Transaction List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {transactions.map((txn) => (
-            <motion.div 
-              key={txn.id}
-              whileTap={{ scale: 0.98 }}
-              style={{ 
-                padding: '20px', 
-                background: 'white', 
-                borderRadius: '28px', 
-                border: '1px solid #f1f5f9', 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.01)'
-              }}
-            >
-              <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
-                <div style={{ 
-                  width: '55px', height: '55px', borderRadius: '18px', 
-                  background: `${txn.color}10`, color: txn.color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  {txn.icon}
+        {/* Transaction Content Render Area */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', fontWeight: '700', color: '#64748b' }}>Loading history...</div>
+        ) : filteredTransactions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', fontWeight: '700', color: '#64748b' }}>No transactions found.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {filteredTransactions.map((txn) => (
+              <motion.div
+                key={txn.id}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  padding: '20px',
+                  background: 'white',
+                  borderRadius: '28px',
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.005)'
+                }}
+              >
+                <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
+                  <div style={{
+                    width: '55px', height: '55px', borderRadius: '18px',
+                    background: txn.amount?.startsWith('+') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 41, 59, 0.05)',
+                    color: txn.amount?.startsWith('+') ? '#10b981' : '#1e293b',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {getIcon(txn.type)}
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '16px', fontWeight: '900', color: '#1e293b', margin: 0 }}>{txn.title}</h4>
+                    <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700', marginTop: '4px', margin: 0 }}>{txn.date}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)' }}>{txn.title}</h4>
-                  <p style={{ fontSize: '12px', color: 'var(--text-dim)', fontWeight: '700', marginTop: '3px' }}>{txn.date}</p>
+                <div style={{ textAlign: 'right' }}>
+                  <h4 style={{ fontSize: '17px', fontWeight: '900', margin: 0, color: txn.amount?.startsWith('+') ? '#10b981' : '#1e293b' }}>{txn.amount}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '4px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: txn.success ? '#10b981' : '#ef4444' }}></div>
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: txn.success ? '#10b981' : '#ef4444', textTransform: 'uppercase' }}>
+                      {txn.success ? 'Completed' : 'Failed'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <h4 style={{ fontSize: '17px', fontWeight: '900', color: txn.amount.startsWith('+') ? '#10b981' : 'var(--text-main)' }}>{txn.amount}</h4>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '4px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: txn.success ? '#10b981' : '#ef4444' }}></div>
-                  <span style={{ fontSize: '10px', fontWeight: '800', color: txn.success ? '#10b981' : '#ef4444', textTransform: 'uppercase' }}>
-                    {txn.success ? 'Completed' : 'Failed'}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-        {/* Load More */}
-        <motion.button 
+        {/* Load More Button */}
+        <motion.button
           whileTap={{ scale: 0.95 }}
-          style={{ width: '100%', marginTop: '30px', padding: '18px', borderRadius: '22px', background: 'transparent', border: '2px solid #f1f5f9', color: 'var(--text-dim)', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
+          style={{ width: '100%', marginTop: '30px', padding: '18px', borderRadius: '22px', background: 'transparent', border: '1px solid #e2e8f0', color: '#94a3b8', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
         >
           Show Older Transactions
         </motion.button>

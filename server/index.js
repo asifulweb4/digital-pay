@@ -217,13 +217,13 @@ apiRouter.post('/recharge', async (req, res) => {
 apiRouter.get('/stats/:email', async (req, res) => {
   try {
     const { email } = req.params;
-    
+
     // Calculate total savings (Add Money, Receive)
     const savingsResult = await pool.query(
       "SELECT SUM(amount) as total FROM transactions WHERE user_email = $1 AND type IN ('add_money', 'receive')",
       [email]
     );
-    
+
     // Calculate total expenses (Send Money, Recharge, Bill Pay)
     const expensesResult = await pool.query(
       "SELECT SUM(amount) as total FROM transactions WHERE user_email = $1 AND type IN ('send_money', 'recharge', 'bill_pay')",
