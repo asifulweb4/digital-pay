@@ -51,7 +51,6 @@ const initDB = async () => {
 
 initDB();
 
-// --- Routes ---
 const apiRouter = express.Router();
 
 // Test Route
@@ -69,7 +68,7 @@ apiRouter.post('/register', async (req, res) => {
   try {
     const checkUser = await pool.query('SELECT * FROM users WHERE email = $1 OR phone = $2', [email, phone]);
     if (checkUser.rows.length > 0) {
-      return res.status(400).json({ success: false, message: "এই ইমেল বা ফোন আগে থেকেই ব্যবহৃত হয়েছে!" });
+      return res.status(400).json({ success: false, message: "এই ইমেল বা ফোন আগে থেকেই ব্যবহৃত হয়েছে!" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -79,7 +78,7 @@ apiRouter.post('/register', async (req, res) => {
     );
     res.json({ success: true, user: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -87,6 +86,7 @@ apiRouter.post('/register', async (req, res) => {
 apiRouter.post('/login', async (req, res) => {
   const { identity, password } = req.body;
   try {
+    // ইমেল অথবা ফোন যেকোনো একটি মিললেই ইউজার পাওয়া যাবে
     const result = await pool.query(
       'SELECT * FROM users WHERE email = $1 OR phone = $1',
       [identity]
@@ -96,28 +96,32 @@ apiRouter.post('/login', async (req, res) => {
       const user = result.rows[0];
       const isMatch = await bcrypt.compare(password, user.password);
       if (isMatch) {
-        delete user.password;
-        res.json({ success: true, user });
+        delete user.password; // সিকিউরিটির জন্য পাসওয়ার্ড অবজেক্ট থেকে ডিলিট করা
+        return res.json({ success: true, user });
       } else {
-        res.status(401).json({ success: false, message: "ভুল ইমেল/ফোন বা পাসওয়ার্ড!" });
+        return res.status(401).json({ success: false, message: "ভুল ইমেল/ফোন বা পাসওয়ার্ড!" });
       }
     } else {
-      res.status(401).json({ success: false, message: "ভুল ইমেল/ফোন বা পাসওয়ার্ড!" });
+      return res.status(401).json({ success: false, message: "ভুল ইমেল/ফোন বা পাসওয়ার্ড!" });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("লগইন এপিআই এরর:", err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// --- ৩. ব্যালেন্স সিঙ্ক এপিআই ---
-apiRouter.get('/user/:email', async (req, res) => {
+// --- ৩. ব্যালেন্স সিঙ্ক এপিআই (সংশোধিত: ইমেইল বা ফোন দুটির জন্যই কাজ করবে) ---
+apiRouter.get('/user/:identifier', async (req, res) => {
   try {
-    const { email } = req.params;
-    const result = await pool.query('SELECT name, email, phone, balance FROM users WHERE email = $1', [email]);
+    const { identifier } = req.params;
+    const result = await pool.query(
+      'SELECT name, email, phone, balance FROM users WHERE email = $1 OR phone = $1',
+      [identifier]
+    );
     if (result.rows.length > 0) {
       res.json(result.rows[0]);
     } else {
-      res.status(404).json({ message: "ইউজার পাওয়া যায়নি" });
+      res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
     }
   } catch (err) {
     res.status(500).send(err.message);
@@ -130,13 +134,14 @@ apiRouter.post('/send-money', async (req, res) => {
   try {
     await pool.query('BEGIN');
     const sender = await pool.query('SELECT balance FROM users WHERE email = $1', [sender_email]);
-    if (sender.rows[0].balance < amount) {
-      throw new Error('পর্যাপ্ত ব্যালেন্স নেই!');
+
+    if (sender.rows.length === 0 || sender.rows[0].balance < amount) {
+      throw new Error('পর্যাপ্ত ব্যালেন্স নেই বা ইউজার সঠিক নয়!');
     }
     await pool.query('UPDATE users SET balance = balance - $1 WHERE email = $2', [amount, sender_email]);
     const receiver = await pool.query('UPDATE users SET balance = balance + $1 WHERE phone = $2 RETURNING id, email', [amount, receiver_phone]);
     if (receiver.rows.length === 0) {
-      throw new Error('প্রাপকের ফোন নাম্বার সঠিক নয়!');
+      throw new Error('প্রাপকের ফোন নাম্বার সঠিক নয়!');
     }
 
     // Record transactions
@@ -150,7 +155,7 @@ apiRouter.post('/send-money', async (req, res) => {
     );
 
     await pool.query('COMMIT');
-    res.json({ success: true, message: "টাকা পাঠানো সফল হয়েছে!" });
+    res.json({ success: true, message: "টাকা পাঠানো সফল হয়েছে!" });
   } catch (err) {
     await pool.query('ROLLBACK');
     res.status(400).json({ success: false, message: err.message });
@@ -172,10 +177,10 @@ apiRouter.post('/add-money', async (req, res) => {
       );
       res.json({ success: true, newBalance: result.rows[0].balance });
     } else {
-      res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
+      res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -185,13 +190,13 @@ apiRouter.post('/recharge', async (req, res) => {
   try {
     const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
+      return res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
     }
 
     const user = userResult.rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "ভুল পাসওয়ার্ড!" });
+      return res.status(401).json({ success: false, message: "ভুল পাসওয়ার্ড!" });
     }
 
     const result = await pool.query(
@@ -199,7 +204,6 @@ apiRouter.post('/recharge', async (req, res) => {
       [amount, email]
     );
     if (result.rows.length > 0) {
-      // Record transaction
       await pool.query(
         "INSERT INTO transactions (user_email, type, amount, description) VALUES ($1, 'recharge', $2, $3)",
         [email, amount, `Mobile Recharge`]
@@ -209,22 +213,29 @@ apiRouter.post('/recharge', async (req, res) => {
       res.status(400).json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// --- ৬. ড্যাশবোর্ড স্ট্যাটস এপিআই ---
-apiRouter.get('/stats/:email', async (req, res) => {
+// --- ৬. ড্যাশবোর্ড স্ট্যাটস এপিআই (সংশোধিত: ইমেইল বা ফোন দুটির জন্যই ট্র্যাক করবে) ---
+apiRouter.get('/stats/:identifier', async (req, res) => {
   try {
-    const { email } = req.params;
+    const { identifier } = req.params;
 
-    // Calculate total savings (Add Money, Receive)
+    // প্রথমে আইডেন্টিফায়ার দিয়ে ইউজারের আসল ইমেইলটি বের করে নেওয়া ভালো, কারণ লেনদেন ইমেইল দিয়ে সেভ হচ্ছে
+    const userCheck = await pool.query('SELECT email FROM users WHERE email = $1 OR phone = $1', [identifier]);
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "ইউজার পাওয়া যায়নি" });
+    }
+    const email = userCheck.rows[0].email;
+
+    // Calculate total savings
     const savingsResult = await pool.query(
       "SELECT SUM(amount) as total FROM transactions WHERE user_email = $1 AND type IN ('add_money', 'receive')",
       [email]
     );
 
-    // Calculate total expenses (Send Money, Recharge, Bill Pay)
+    // Calculate total expenses
     const expensesResult = await pool.query(
       "SELECT SUM(amount) as total FROM transactions WHERE user_email = $1 AND type IN ('send_money', 'recharge', 'bill_pay')",
       [email]

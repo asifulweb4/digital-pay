@@ -10,7 +10,7 @@ const Profile = ({ user, onLogout }) => {
 
   const handleMenuClick = (label) => {
     if (label === 'Help & Support') {
-      window.open('https://wa.me/message/2WPWBDMISBSGL1', '_blank');
+      window.open('https://wa.me/message/Y7MRPB6L2N3LN1', '_blank');
       return;
     }
     if (['Personal Information', 'Security & PIN', 'Transaction History', 'Favorites'].includes(label)) {
@@ -32,13 +32,13 @@ const Profile = ({ user, onLogout }) => {
       {/* Premium Profile Header */}
       <div style={{ textAlign: 'center', margin: '40px 0 50px' }}>
         <div style={{ position: 'relative', width: '130px', height: '130px', margin: '0 auto 25px' }}>
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05 }}
             style={{ width: '100%', height: '100%', borderRadius: '45px', background: 'linear-gradient(135deg, #4f46e5, #ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '5px solid white', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
           >
             <User size={60} color="white" strokeWidth={3} />
           </motion.div>
-          <motion.button 
+          <motion.button
             whileTap={{ scale: 0.9 }}
             style={{ position: 'absolute', bottom: '-10px', right: '-10px', width: '45px', height: '45px', borderRadius: '15px', background: 'white', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', cursor: 'pointer' }}
           >
@@ -47,7 +47,7 @@ const Profile = ({ user, onLogout }) => {
         </div>
         <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-main)', letterSpacing: '-0.5px' }}>{user.name}</h2>
         <p style={{ color: 'var(--text-dim)', fontWeight: '700', marginTop: '5px', fontSize: '15px' }}>{user.phone || user.email}</p>
-        
+
         <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '25px' }}>
           <div style={{ padding: '12px 25px', background: 'white', borderRadius: '20px', border: '1px solid #f1f5f9', boxShadow: '0 4px 10px rgba(0,0,0,0.02)' }}>
             <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px' }}>Account Status</p>
@@ -63,20 +63,20 @@ const Profile = ({ user, onLogout }) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '800px', margin: '0 auto' }}>
         <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', marginLeft: '10px', marginBottom: '5px' }}>Account Settings</h3>
         {menuItems.map((item, idx) => (
-          <motion.div 
-            key={idx} 
+          <motion.div
+            key={idx}
             onClick={() => handleMenuClick(item.label)}
             whileHover={{ x: 5 }}
             whileTap={{ scale: 0.98 }}
-            style={{ 
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+            style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               padding: '22px', background: 'white', borderRadius: '28px', border: '1px solid #f1f5f9',
               boxShadow: '0 8px 20px rgba(0,0,0,0.02)', cursor: 'pointer'
             }}
           >
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-              <div style={{ 
-                width: '55px', height: '55px', borderRadius: '18px', 
+              <div style={{
+                width: '55px', height: '55px', borderRadius: '18px',
                 background: `${item.color}10`, color: item.color,
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
@@ -91,12 +91,12 @@ const Profile = ({ user, onLogout }) => {
           </motion.div>
         ))}
 
-        <motion.button 
+        <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onLogout}
-          style={{ 
-            marginTop: '30px', display: 'flex', gap: '20px', alignItems: 'center', 
-            background: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2', 
+          style={{
+            marginTop: '30px', display: 'flex', gap: '20px', alignItems: 'center',
+            background: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2',
             padding: '22px', borderRadius: '28px', width: '100%', cursor: 'pointer'
           }}
         >
@@ -104,8 +104,8 @@ const Profile = ({ user, onLogout }) => {
             <LogOut size={22} strokeWidth={3} />
           </div>
           <div style={{ textAlign: 'left' }}>
-             <span style={{ fontSize: '17px', fontWeight: '900' }}>Logout</span>
-             <p style={{ fontSize: '13px', opacity: 0.8, fontWeight: '600' }}>Securely exit your account</p>
+            <span style={{ fontSize: '17px', fontWeight: '900' }}>Logout</span>
+            <p style={{ fontSize: '13px', opacity: 0.8, fontWeight: '600' }}>Securely exit your account</p>
           </div>
         </motion.button>
       </div>
@@ -118,7 +118,7 @@ const Profile = ({ user, onLogout }) => {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           backdropFilter: 'blur(5px)'
         }} onClick={() => setActiveModal(null)}>
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             onClick={(e) => e.stopPropagation()}
@@ -149,14 +149,14 @@ const Profile = ({ user, onLogout }) => {
               <div>
                 <h3 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '15px', color: 'var(--text-main)' }}>Security & PIN</h3>
                 <p style={{ fontSize: '14px', color: 'var(--text-dim)', marginBottom: '20px', fontWeight: '600', lineHeight: '1.5' }}>Manage your account security. If you forgot your website password, you can reset it here.</p>
-                
-                <button 
+
+                <button
                   onClick={() => setForgotPasswordStep(true)}
                   style={{
-                  width: '100%', padding: '16px', background: '#fef2f2', color: '#ef4444',
-                  borderRadius: '16px', border: '1px solid #fee2e2', fontWeight: '800',
-                  fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
-                }}>
+                    width: '100%', padding: '16px', background: '#fef2f2', color: '#ef4444',
+                    borderRadius: '16px', border: '1px solid #fee2e2', fontWeight: '800',
+                    fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                  }}>
                   <Shield size={18} /> Forgot Password?
                 </button>
               </div>
@@ -166,9 +166,9 @@ const Profile = ({ user, onLogout }) => {
               <div>
                 <h3 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '15px', color: 'var(--text-main)' }}>Reset Password</h3>
                 <p style={{ fontSize: '14px', color: 'var(--text-dim)', marginBottom: '20px', fontWeight: '600', lineHeight: '1.5' }}>Enter your registered email or phone number to receive a reset link.</p>
-                
-                <input 
-                  type="text" 
+
+                <input
+                  type="text"
                   placeholder="Email or Phone Number"
                   style={{
                     width: '100%', padding: '15px', borderRadius: '16px', border: '1px solid #e2e8f0',
@@ -176,21 +176,21 @@ const Profile = ({ user, onLogout }) => {
                   }}
                 />
 
-                <button 
+                <button
                   onClick={() => {
                     alert('Password reset link sent to your contact.');
                     setForgotPasswordStep(false);
                     setActiveModal(null);
                   }}
                   style={{
-                  width: '100%', padding: '16px', background: '#4f46e5', color: 'white',
-                  borderRadius: '16px', border: 'none', fontWeight: '800',
-                  fontSize: '15px', cursor: 'pointer', marginBottom: '10px'
-                }}>
+                    width: '100%', padding: '16px', background: '#4f46e5', color: 'white',
+                    borderRadius: '16px', border: 'none', fontWeight: '800',
+                    fontSize: '15px', cursor: 'pointer', marginBottom: '10px'
+                  }}>
                   Send Reset Link
                 </button>
 
-                <button 
+                <button
                   onClick={() => setForgotPasswordStep(false)}
                   style={{
                     width: '100%', padding: '16px', background: 'transparent', color: 'var(--text-dim)',
@@ -224,7 +224,7 @@ const Profile = ({ user, onLogout }) => {
             )}
 
 
-            <button 
+            <button
               onClick={() => setActiveModal(null)}
               style={{
                 width: '100%', padding: '16px', marginTop: '25px', background: '#f1f5f9',

@@ -27,7 +27,7 @@ const PaymentGateway = ({ amount, onPaymentSuccess }) => {
 
   const methods = [
     { id: 'bkash', label: 'bKash', color: '#e2136e', type: 'MFS', number: '01333858547' },
-    { id: 'nagad', label: 'Nagad', color: '#f7941d', type: 'MFS', number: '01XXXXXXXXX' },
+    { id: 'nagad', label: 'Nagad', color: '#f7941d', type: 'MFS', number: '01747156607' },
     { id: 'rocket', label: 'Rocket', color: '#8c3494', type: 'MFS', number: '01XXXXXXXXX' },
     { id: 'upay', label: 'Upay', color: '#00adef', type: 'MFS', number: '01XXXXXXXXX' },
     { id: 'card', label: 'Card / Net Banking', color: '#4f46e5', type: 'Gateway', number: null },
