@@ -20,6 +20,7 @@ import Refer from './components/Refer';
 import Vip from './components/Vip';
 import Offers from './components/Offers';
 import Help from './components/Help';
+import Admin from './pages/Admin';
 import './index.css';
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000');
@@ -33,7 +34,7 @@ function App() {
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
         const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
+        //setUser(parsedUser);
 
         // অ্যাপ খুললে সাইলেন্টলি ডাটাবেস থেকে রিয়েল ব্যালেন্স আনা
         try {
@@ -81,6 +82,7 @@ function App() {
           <Route path="/vip" element={user ? <Vip /> : <Navigate to="/login" />} />
           <Route path="/offers" element={user ? <Offers /> : <Navigate to="/login" />} />
           <Route path="/help" element={user ? <Help /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={<Admin />} />
 
           {/* উইথড্র রাউট ফিক্স করা হলো: ফাংশনের নাম সঠিক করা হয়েছে এবং লগইন গার্ড দেওয়া হয়েছে */}
           <Route path="/withdraw" element={user ? <Withdraw user={user} onBalanceUpdate={handleUpdateBalance} /> : <Navigate to="/login" />} />

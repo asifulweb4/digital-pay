@@ -4,6 +4,7 @@ const { Pool } = pkg;
 import cors from 'cors';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import adminRoutes from './adminRoutes.js';
 
 dotenv.config();
 
@@ -253,6 +254,7 @@ apiRouter.get('/stats/:identifier', async (req, res) => {
 
 app.use('/api', apiRouter);
 app.use('/', apiRouter);
+app.use('/api/admin', adminRoutes);
 
 export default app;
 

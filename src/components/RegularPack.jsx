@@ -60,18 +60,17 @@ const RegularPack = ({ user }) => {
 
   const generatePacks = () => {
     const basePacks = [
-      { title: '10 GB Internet', validity: '7 Days', price: 79, category: 'ডাটা' },
-      { title: '15 GB Internet', validity: '7 Days', price: 106, category: 'ডাটা' },
-      { title: '30 GB Internet', validity: '30 Days', price: 199, category: 'ডাটা' },
       { title: '45 GB Internet', validity: '30 Days', price: 275, category: 'ডাটা' },
       { title: '60 GB Internet', validity: '30 Days', price: 411, category: 'ডাটা' },
       { title: '80 GB Internet', validity: '30 Days', price: 555, category: 'ডাটা' },
-      { title: '80 Minutes', validity: '3 Days', price: 29, category: 'ভয়েস' },
-      { title: '110 Minutes', validity: '7 Days', price: 53, category: 'ভয়েস' },
-      { title: '225 Minutes', validity: '7 Days', price: 101, category: 'ভয়েস' },
-      { title: '450 Minutes', validity: '15 Days', price: 199, category: 'ভয়েস' },
+
+      { title: '500 Minutes', validity: '30 Days', price: 285, category: 'ভয়েস' },
       { title: '500 Minutes', validity: '30 Days', price: 295, category: 'ভয়েস' },
-      { title: '10GB + 100 Min', validity: '7 Days', price: 175, category: 'বান্ডেল' },
+      { title: '700 Minutes', validity: '30 Days', price: 355, category: 'ভয়েস' },
+      { title: '1080 Minutes', validity: '30 Days', price: 449, category: 'ভয়েস' },
+      { title: '1600 Minutes', validity: '30 Days', price: 599, category: 'ভয়েস' },
+
+
       { title: '25GB + 250 Min', validity: '15 Days', price: 288, category: 'বান্ডেল' },
       { title: '35GB + 300 Min', validity: '30 Days', price: 345, category: 'বান্ডেল' },
       { title: '50GB + 600 Min', validity: '30 Days', price: 499, category: 'বান্ডেল' },
